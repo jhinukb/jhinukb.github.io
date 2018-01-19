@@ -102,6 +102,11 @@ img.resize {
   max-height: 25%;
 }
 
+img.bear {
+  max-width: 5%;
+  max-height: 5%;
+}
+
 /*check why me_section function does not change font accurately*/
 .me_section {
   font-size: 20px;
