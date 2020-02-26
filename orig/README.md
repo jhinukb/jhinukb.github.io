@@ -1,1 +1,0 @@
-# jhinukb.github.io
