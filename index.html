@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <link rel="stylesheet" href="mystyle.css">
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+</head>
+<title>Reported Abortions by Age Group</title>
+<h1>Reported Abortions by Age Group</h1>
+<body>
+    <div id="chart"></div>
+    <!-- <div id="chart1"></div> -->
+</body>
+
+<script>
+d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narrative_viz_data.csv", function(data) {
+
+  var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
+    .key(function(d) { return d.age_group;})
+    .entries(data);
+
+  d3.extent(data, function(d) { console.log(d.year); })
+    var width = 700;//800;
+    var height = 450//500;
+    var margin = {top: 30, right: 20, bottom: 200, left: 100};
+    var duration = 250;
+
+    var lineOpacity = "0.7";
+    var lineOpacityHover = "1";
+    var otherLinesOpacityHover = "0.1";
+    var lineStroke = "2.5px";
+    var lineStrokeHover = "3px";
+
+    var circleOpacity = '0.85';
+    var circleOpacityOnLineHover = "0.25"
+    var circleRadius = 6;
+    var circleRadiusHover = 10;
+
+
+    /* Format Data */
+    var parseDate = d3.timeParse("%Y");
+    sumstat.forEach(function(d) {
+      d.values.forEach(function(d) {
+        d.year = parseDate(d.year);
+        d.number_of_abortions = +d.number_of_abortions;
+        d.pct_dist_age_group = +d.pct_dist_age_group;
+      });
+    });
+
+    /* Scale */
+    //x axis
+    var xScale = d3.scaleTime()
+    .domain(d3.extent(data, function(d) { return d.year; }))
+    .range([ 0, width-margin.top ]);
+
+    //y axis
+    var yScale = d3.scaleLinear()
+    .domain([0, d3.max(data, function(d) { return +d.number_of_abortions; })])
+    .range([ height-margin.top, 0 ]);
+
+    var res = sumstat.map(function(d){ return d.key }) // list of group names
+    var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    /* Add SVG */
+    var svg = d3.select("#chart").append("svg")
+      .attr("width", (width+margin.top*20) + 200+"px")
+      .attr("height", (height+margin.bottom)+"px")
+      .append('g')
+      .attr("transform",
+            "translate(" + margin.top*4 + "," + margin.top*2 + ")");
+
+    var svg1 = svg.append("svg")
+      .attr("width", (width+margin.top*20) + 400+"px")
+      .attr("height", (height+margin.bottom)+"px")
+      .attr("id", "second-chart")
+      .append('g')
+      .attr("transform",
+            "translate(" + margin.top*27.5 + "," + 0 + ")");
+
+
+    /* Add line into SVG */
+    var line = d3.line()
+      .x(d => xScale(d.year))
+      .y(d => yScale(d.number_of_abortions));
+
+    let lines = svg.append('g')
+      .attr('class', 'lines');
+
+    //x axis
+    const x = d3.scaleTime()
+    .domain([0, 2019])
+    .range([ 0, width-margin.top ]);
+
+    //y axis
+    const y = d3.scaleLinear()
+    .domain([0, d3.max(data, function(d) { return +d.number_of_abortions; })])
+    .range([ height -margin.top, 0 ]);
+
+    const type = d3.annotationLabel;
+    const annotations = [
+      {
+        note: {
+          // label: "Test annotation text",
+          wrap: 200,
+          bgPadding: 10,
+          title: "Ages 20-24 obtained 34% of all abortions",
+        },
+        x: xScale(parseDate(2015)),
+        y: yScale(173615),
+        className: "show-bg",
+        dy: -30,
+        dx: 100
+      },
+      {
+        note: {
+          bgPadding: 10,
+          title: "Ages 25–29 obtained 27% of all abortions",
+        },
+        x: xScale(parseDate(2018)),
+        y: yScale(179620),
+        className: "show-bg",
+        dy: 50,
+        dx: -100
+      },
+      {
+        note: {
+          wrap: 200,
+          bgPadding: 10,
+          title: "Adolescents <15 accounted for 0.2% of reported abortions (abortion rate of 0.4%)",
+        },
+        x: xScale(parseDate(2013)),
+        y: yScale(2013),
+        className: "show-bg",
+        dy: 50,
+        dx: -30
+      },
+      {
+        note: {
+          wrap: 200,
+          bgPadding: 10,
+          title: "In 2014, 60% of U.S. abortion patients were in 20s while 25% was in 30s",
+        },
+        x: xScale(parseDate(2014)),
+        y: yScale(88593),
+        className: "show-bg",
+        dy: -25,
+        dx: 60
+      }
+      //In 2014, more than half of all U.S. abortion patients: (60%) were in their 20s while 25% was in their 30s
+    ];
+
+    const makeAnnotations = d3.annotation()
+        .editMode(false) //edit annotation
+        .notePadding(15)
+        .type(type)
+        .annotations(annotations)
+
+    //create chart
+    d3.select("svg")
+    .append("g")
+    .attr("class", "annotation-group")
+    .attr("transform",
+          "translate(" + margin.top*4 + "," + margin.top*2 + ")")
+    .call(makeAnnotations)
+
+    svg.selectAll(".line")
+      .data(sumstat).enter()
+      .append('g')
+      .attr('class', 'line-group')
+      .on("mouseover", function(d, i) {
+          svg.append("text")
+            .attr("class", "title-text")
+            .style("fill", color(i))
+            .style("font-size", "20")
+            .text(d.key)
+            .attr("text-anchor", "middle")
+            .attr("x", (width-margin.top)/2)
+            .attr("y", 5);
+        })
+      .on("mouseout", function(d) {
+          svg.select(".title-text").remove();
+        })
+
+      //append line path
+      .append('path')
+      .attr('class', 'line')
+      //add transition affect to lines in graph
+      // .transition().duration(3000).delay(1000)
+      //adds each line
+      .attr('d', d => line(d.values))
+      .style('stroke', (d, i) => color(i))
+      .style('opacity', lineOpacity)
+      .on("mouseover", function(d) {
+          d3.selectAll('.line')
+    					.style('opacity', otherLinesOpacityHover);
+          d3.selectAll('.circle')
+    					.style('opacity', circleOpacityOnLineHover);
+          d3.select(this)
+            .style('opacity', lineOpacityHover)
+            .style("stroke-width", lineStrokeHover)
+            .style("cursor", "pointer");
+        })
+      .on("mouseout", function(d) {
+          d3.selectAll(".line")
+    					.style('opacity', lineOpacity);
+          d3.selectAll('.circle')
+    					.style('opacity', circleOpacity);
+          d3.select(this)
+            .style("stroke-width", lineStroke)
+            .style("cursor", "none");
+        })
+
+
+        //onclick functions when you click on and off a line
+        .on("click", function(d, i) {
+          var current_color = d3.select(this).style('stroke');
+          //clear contents of svg/chart before adding new one
+          svg1.selectAll("*").remove()
+          var barPadding = 10;
+          var barWidth = (width-margin.top-200 / sumstat.length);
+          let xScale1 = d3.scaleTime()
+              .domain(d3.extent(data, function(d) { return d.year; }))
+              .range([ 0, width-margin.top-200 ]);
+              // .range([ 0, width-margin.top ]);
+
+          var width1 = width-margin.top-200;
+          var height1 = height-margin.top-100;
+
+                  //y axis
+          var yScale1 = d3.scaleLinear()
+                .domain([0, d3.max(data, function(d) { return +d.pct_dist_age_group; })])
+                .range([ height-margin.top-100, 0 ]);
+
+          //create bar chart
+          var current = d3.select(this);
+          var h = height-margin.top-100;
+          var age_group = `${d.key}`;
+          var values = d.values;
+          svg1.selectAll("rect")
+              .data(sumstat)
+              .enter()
+              .append("rect")
+              .attr("width", 55+"px")
+              .attr("height", function(d, i) {
+                return h - yScale1(values[i].pct_dist_age_group);
+              })
+              .attr("x", function(d, i) {
+                  // return i* width/sumstat.length;
+                  return i * (width-200)/sumstat.length;
+              })
+              .attr("y",
+                function(d, i) {
+                    return yScale1(values[i].pct_dist_age_group);
+                  }
+              )
+              .attr("fill", current_color)
+              .append("text")
+
+
+            //create axes on click
+            var xAxis1 = d3.axisBottom(xScale1).ticks(5);
+            var yAxis1 = d3.axisLeft(yScale1).ticks(5);
+
+            svg1.append("g")
+              .attr("class", "x axis1")
+              .attr("transform", "translate(0," + (height-margin.top-100)+ ")")
+              .call(xAxis1)
+              .append("text")
+              //position of x axis label
+              .attr("x",  (width+margin.top*2) / 2 - 120)
+              .attr("y",40)
+              .attr("font-size", "15")
+              .attr("fill", "#000")
+              .text("Year");
+
+            svg1.append("g")
+              .attr("class", "y axis1")
+              .call(yAxis1)
+              .append('text')
+              .attr("transform", "rotate(-90)")
+              //position of y axis label
+              .attr("y", -40)
+              .attr("x", -70)
+              // .attr("y", height1 / 2)
+              // .attr("x", width1 / 2)
+              .attr("font-size", "15")
+              .attr("fill", "#000")
+              .text("% Distribution for Ages " + age_group);
+            //
+
+          });
+
+
+
+
+    /* Add circles in the line */
+    lines.selectAll("circle-group")
+      .data(sumstat).enter()
+      .append("g")
+      .style("fill", (d, i) => color(i))
+      .selectAll("circle")
+      .data(d => d.values).enter()
+      .append("g")
+      .attr("class", "circle")
+      .on("mouseover", function(d) {
+          d3.select(this)
+            .style("cursor", "pointer")
+            .append("text")
+            .attr("class", "text")
+            .text(`${d.number_of_abortions}`)
+            .attr("x", d => xScale(d.year) +5 )
+            .attr("y", d => yScale(d.number_of_abortions - 10));
+        })
+      .on("mouseout", function(d) {
+          d3.select(this)
+            .style("cursor", "none")
+            .transition()
+            .duration(duration)
+            .selectAll(".text").remove();
+        })
+      .append("circle")
+      .attr("cx", d => xScale(d.year))
+      .attr("cy", d => yScale(d.number_of_abortions))
+      .attr("r", circleRadius)
+      .style('opacity', circleOpacity)
+      .on("mouseover", function(d) {
+            d3.select(this)
+              .transition()
+              .duration(duration)
+              .attr("r", circleRadiusHover);
+          })
+        .on("mouseout", function(d) {
+            d3.select(this)
+              .transition()
+              .duration(duration)
+              .attr("r", circleRadius);
+          });
+
+
+    /* Add Axis into SVG */
+    var xAxis = d3.axisBottom(xScale).ticks(5);
+    var yAxis = d3.axisLeft(yScale).ticks(5);
+
+    // var xAxis1 = d3.axisBottom(xScale1).ticks(5);
+    // var yAxis1 = d3.axisLeft(yScale1).ticks(5);
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (height-margin.top) + ")")
+      .call(xAxis)
+      .append("text")
+      .attr("x",  (width+margin.top*2) / 2 - 30)
+      .attr("y",50)
+      .attr("font-size", "15")
+      .attr("fill", "#000")
+      .text("Year");
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .append('text')
+      .attr("transform", "rotate(-90)")
+      .attr("y", -60)
+      .attr("x", -140)
+      .attr("font-size", "15")
+      .attr("fill", "#000")
+      .text("Total Abortions");
+
+
+
+
+})
+</script>
+</html>
