@@ -1,4 +1,4 @@
-# jhinukb.github.io
+# Narrative Visualization Project (D3 Library)
 
 This is a Narrative Visualization on Reported Abortions.
 
@@ -6,3 +6,7 @@ The data was downloaded as csv directly from this USA facts website:
 https://usafacts.org/data/topics/people-society/health/maternal-early-childhood-health/reported-abortions/?utm_source=bing&utm_medium=cpc&utm_campaign=ND-Healthcare&msclkid=a045da786f831ea71d51b8af7dd6b3ab
 
 The data was formatted into a csv with the selected columns.
+
+D3 Library was used.
+Languages: JavaScript, HTML, CSS
+Hosted on github.
