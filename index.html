@@ -281,12 +281,51 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
               //position of y axis label
               .attr("y", -40)
               .attr("x", -70)
-              // .attr("y", height1 / 2)
-              // .attr("x", width1 / 2)
               .attr("font-size", "15")
               .attr("fill", "#000")
               .text("% Distribution for Ages " + age_group);
-            //
+
+
+            //make annotations for the bar chart. similar to a caption
+            var label_value = "";
+            if (age_group == "Under 15") {
+              label_value = "Government estimates indicate that teen abortion rates increased during the 1970s, stabilized during the 1980s at around 43 per 1,000 females ages 15 to 19, then decreased steadily to about 11 per 1,000 by 2013. Similar declines are evident for all age groups.";
+            } else if (age_group == "20-24") {
+              label_value = "Women in their 20s accounted for the majority of abortions in 2019 and had the highest abortion rates (CDC)."
+            } else if (age_group == "25-29") {
+              label_value = "For this age group, abortions have risen 20% in the past 10 years.  This could be due to financial constraints or lack of access to contraceptives."
+            } else if (age_group == "30-34") {
+              label_value = "Many women in 30s gave their reasons on getting an abortion which encompassed a sense of not being ready for motherhood and the desire not to disrupt education, work, or life plans."
+            } else if (age_group == "35-39") {
+              label_value = "This age group faced age related risk of fetal loss, ectopic pregnancy, and stillbirth, and age related risk of spontaneous abortion stratified according to parity and previous spontaneous abortions."
+            } else if (age_group == "40 or older") {
+              label_value = "Not all teen births are first births. In 2020, roughly 15 percent of live births to 15 to 19-year-olds were at least the second child born to the mother."
+            } else { //15-19
+              label_value = "he majority of women having an abortion already have at least one child and over the years we have seen a shift towards smaller families, which also goes hand in hand with the later age at which women start their families in the first place."
+            }
+
+            const annotations = [
+              {
+                note: {
+                  wrap: 500,
+                  bgPadding: 10,
+                  label: label_value,
+                  title: "Age Group " + age_group + " Facts"
+                },
+                x: 0,
+                y: 320,
+                dy: 100,
+                dx: 50
+              }
+            ]
+
+            // Add annotation to the chart
+            const makeAnnotations = d3.annotation()
+              .annotations(annotations)
+            // d3.select("#example1")
+              svg1.append("g")
+              .call(makeAnnotations)
+
 
           });
 
