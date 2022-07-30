@@ -9,4 +9,5 @@ The data was formatted into a csv with the selected columns.
 
 D3 Library was used.
 Languages: JavaScript, HTML, CSS
+
 Hosted on github.
