@@ -2,14 +2,15 @@
 <meta charset="utf-8">
 <head>
   <link rel="stylesheet" href="mystyle.css">
+  <!-- import d3 library -->
   <script src="https://d3js.org/d3.v4.js"></script>
+  <!-- import d3-annotation library -->
   <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 </head>
 <title>Reported Abortions by Age Group</title>
 <h1>Reported Abortions by Age Group</h1>
 <body>
     <div id="chart"></div>
-    <!-- <div id="chart1"></div> -->
 </body>
 
 <script>
@@ -19,9 +20,8 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
     .key(function(d) { return d.age_group;})
     .entries(data);
 
-  d3.extent(data, function(d) { console.log(d.year); })
-    var width = 700;//800;
-    var height = 450//500;
+    var width = 700;
+    var height = 450;
     var margin = {top: 30, right: 20, bottom: 200, left: 100};
     var duration = 250;
 
@@ -35,7 +35,6 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
     var circleOpacityOnLineHover = "0.25"
     var circleRadius = 6;
     var circleRadiusHover = 10;
-
 
     /* Format Data */
     var parseDate = d3.timeParse("%Y");
@@ -77,7 +76,6 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
       .attr("transform",
             "translate(" + margin.top*27.5 + "," + 0 + ")");
 
-
     /* Add line into SVG */
     var line = d3.line()
       .x(d => xScale(d.year))
@@ -86,16 +84,17 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
     let lines = svg.append('g')
       .attr('class', 'lines');
 
-    //x axis
+    //x scale
     const x = d3.scaleTime()
     .domain([0, 2019])
     .range([ 0, width-margin.top ]);
 
-    //y axis
+    //y scale
     const y = d3.scaleLinear()
     .domain([0, d3.max(data, function(d) { return +d.number_of_abortions; })])
     .range([ height -margin.top, 0 ]);
 
+    //annotations
     const type = d3.annotationLabel;
     const annotations = [
       {
@@ -146,7 +145,6 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
         dy: -25,
         dx: 60
       }
-      //In 2014, more than half of all U.S. abortion patients: (60%) were in their 20s while 25% was in their 30s
     ];
 
     const makeAnnotations = d3.annotation()
@@ -155,7 +153,7 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
         .type(type)
         .annotations(annotations)
 
-    //create chart
+    //add annotations
     d3.select("svg")
     .append("g")
     .attr("class", "annotation-group")
@@ -163,6 +161,10 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
           "translate(" + margin.top*4 + "," + margin.top*2 + ")")
     .call(makeAnnotations)
 
+    //color array for legend
+    const color_arr = [];
+
+    //create chart
     svg.selectAll(".line")
       .data(sumstat).enter()
       .append('g')
@@ -184,11 +186,12 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
       //append line path
       .append('path')
       .attr('class', 'line')
-      //add transition affect to lines in graph
-      // .transition().duration(3000).delay(1000)
       //adds each line
       .attr('d', d => line(d.values))
-      .style('stroke', (d, i) => color(i))
+      .style('stroke', function(d, i) {
+        color_arr[i] = color(i);
+        return color_arr[i];
+      })
       .style('opacity', lineOpacity)
       .on("mouseover", function(d) {
           d3.selectAll('.line')
@@ -221,12 +224,10 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
           let xScale1 = d3.scaleTime()
               .domain(d3.extent(data, function(d) { return d.year; }))
               .range([ 0, width-margin.top-200 ]);
-              // .range([ 0, width-margin.top ]);
 
           var width1 = width-margin.top-200;
           var height1 = height-margin.top-100;
 
-                  //y axis
           var yScale1 = d3.scaleLinear()
                 .domain([0, d3.max(data, function(d) { return +d.pct_dist_age_group; })])
                 .range([ height-margin.top-100, 0 ]);
@@ -285,8 +286,27 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
               .attr("fill", "#000")
               .text("% Distribution for Ages " + age_group);
 
+            //add title to bar chart
+            svg.append("text")
+              .attr("x", 1060)
+              .attr("y", -20)
+              .attr("text-anchor", "middle")
+              .style("font-size", "16px")
+              .style("font-weight", "bold")
+              .style("text-decoration", "underline")
+              .text("% Distribution vs Year");
 
-            //make annotations for the bar chart. similar to a caption
+            //add border to bar chart
+            var borderPath = svg.append("rect")
+              .attr("x", 800-(margin.top * 2))
+              .attr("y", -50)
+              .attr("height", height1 + 280)
+              .attr("width", width1 + 140)
+              .style("stroke", "black")
+              .style("fill", "none")
+              .style("stroke-width", 2);
+
+            //make annotations for the bar chart
             var label_value = "";
             if (age_group == "Under 15") {
               label_value = "Government estimates indicate that teen abortion rates increased during the 1970s, stabilized during the 1980s at around 43 per 1,000 females ages 15 to 19, then decreased steadily to about 11 per 1,000 by 2013. Similar declines are evident for all age groups.";
@@ -301,13 +321,13 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
             } else if (age_group == "40 or older") {
               label_value = "Not all teen births are first births. In 2020, roughly 15 percent of live births to 15 to 19-year-olds were at least the second child born to the mother."
             } else { //15-19
-              label_value = "he majority of women having an abortion already have at least one child and over the years we have seen a shift towards smaller families, which also goes hand in hand with the later age at which women start their families in the first place."
+              label_value = "The majority of women having an abortion already have at least one child and over the years we have seen a shift towards smaller families, which also goes hand in hand with the later age at which women start their families in the first place."
             }
 
             const annotations = [
               {
                 note: {
-                  wrap: 500,
+                  wrap: 450,
                   bgPadding: 10,
                   label: label_value,
                   title: "Age Group " + age_group + " Facts"
@@ -322,15 +342,9 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
             // Add annotation to the chart
             const makeAnnotations = d3.annotation()
               .annotations(annotations)
-            // d3.select("#example1")
               svg1.append("g")
               .call(makeAnnotations)
-
-
           });
-
-
-
 
     /* Add circles in the line */
     lines.selectAll("circle-group")
@@ -375,13 +389,25 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
               .attr("r", circleRadius);
           });
 
+    //add color legend for age group
+    for (let i = 0; i < color_arr.length; i++) {
+      svg.append("circle")
+        .attr("cx",500)
+        .attr("cy",500 + (i * 20))
+        .attr("r", 6)
+        .style("fill", color_arr[i])
+      svg.append("text")
+        .attr("x",520)
+        .attr("y", 500 + (i * 20))
+        .text(sumstat[i].key)
+        .style("font-size", "15px")
+        .attr("alignment-baseline","middle")
+
+    }
 
     /* Add Axis into SVG */
     var xAxis = d3.axisBottom(xScale).ticks(5);
     var yAxis = d3.axisLeft(yScale).ticks(5);
-
-    // var xAxis1 = d3.axisBottom(xScale1).ticks(5);
-    // var yAxis1 = d3.axisLeft(yScale1).ticks(5);
 
     svg.append("g")
       .attr("class", "x axis")
@@ -404,9 +430,6 @@ d3.csv("https://raw.githubusercontent.com/jhinukb/jhinukb.github.io/master/narra
       .attr("font-size", "15")
       .attr("fill", "#000")
       .text("Total Abortions");
-
-
-
 
 })
 </script>
